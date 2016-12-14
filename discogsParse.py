@@ -75,7 +75,7 @@ def parseRelease(bdd, strData):
 		cursor.execute(query, (track['title'], artistId, albumId,))
 		checkTrack = cursor.fetchone()[0]
 	
-		if (checkTrack == 0):
+		if (checkTrack == 0 and track['type_'] != "heading"):
 			query = """INSERT INTO Tracks (Title, Artist, AlbumArtistId, Position, AlbumId, Length) 
 					VALUES(?, ?, ?, ?, ?, ?)"""
 			cursor.execute(query, (track['title'], trackArtist, artistId, track['position'], albumId, track['duration']))
