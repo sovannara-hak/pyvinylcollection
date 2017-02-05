@@ -44,6 +44,7 @@ def parseRelease(bdd, strData):
 	artist = fusionArtists(strData['artists'])
 	year = strData['year']
 	title = strData['title']
+        discogsID = strData['id']
 	
 	#print artist + "\n"
 	#print "[" + str(year) + " - " + title + "]\n" 
@@ -66,6 +67,14 @@ def parseRelease(bdd, strData):
 		query = "SELECT Id FROM Artists WHERE Name = ?"
 		cursor.execute(query, (artist,))
 		artistId = cursor.fetchone()[0]
+                
+		query = "SELECT COUNT(DiscogsId) FROM Albums WHERE DiscogsId = ?"
+		cursor.execute(query, (discogsID, ))
+		checkAlbumCount = cursor.fetchone()[0]
+		if (checkAlbumCount == 0):
+			query = """INSERT INTO `Albums` (`DiscogsId`, `Title`, `ArtistId`, `Year`)
+						VALUES(?, ?, ?, ?)"""
+			cursor.execute(query, (discogsID, title, artistId, year))
 
 		query = "SELECT DiscogsId FROM Albums WHERE Title = ? AND ArtistId = ?"
 		cursor.execute(query, (title, artistId,))

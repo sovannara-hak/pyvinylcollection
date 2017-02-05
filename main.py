@@ -3,7 +3,7 @@ import sqlite3
 import os.path
 import discogsParse
 import json
-
+import customRelease
 from config import *
 
 import remi.gui as gui
@@ -30,11 +30,12 @@ class MyApp(App):
 
 		self.leftLayout = gui.VBox(width=350, height='100%')
 
-		self.wid = gui.VBox(width=350, height='90%')
+		self.wid = gui.VBox(width=350, height='80%')
 		self.wid.style['display'] = 'block'
 		self.wid.style['overflow'] = 'auto'
 		  
 		self.filterInput = gui.TextInput(width=200, height=20, margin='10px')
+                self.filterInput.attributes['autocomplete'] = 'off'
 		self.filterInput.set_on_enter_listener(self.on_filter_input_enter)
 		self.generateReleaseTree(self.wid)
 		self.syncButton = gui.Button("Sync", width=200, height=30, margin='10px')
@@ -43,11 +44,19 @@ class MyApp(App):
 		# returning the root widget
 		self.leftLayout.append(self.filterInput)
 		self.leftLayout.append(self.wid)
-		self.leftLayout.append(self.syncButton)
 
-		self.rightLayout = gui.VBox(width='100%', height='100%')
+		self.buttonBar = gui.HBox(width=350, height='10%')
+		self.addCustomButton = gui.Button("Add custom release", width=280, height=30, margin='10px')
+		self.addCustomButton.set_on_click_listener(self.on_add_custom_pushed)
 
-		self.mainWindow.append(self.leftLayout)
+		self.buttonBar.append(self.addCustomButton)
+		self.buttonBar.append(self.syncButton)
+
+		self.leftLayout.append(self.buttonBar)
+
+		self.rightLayout = gui.VBox(width='100%', height='90%')
+
+		self.mainWindow.append(self.leftLayout, key='lefLayout')
 		self.mainWindow.append(self.rightLayout, key='rightLayout')
 
 		return self.mainWindow
@@ -61,6 +70,9 @@ class MyApp(App):
 		self.conn = sqlite3.connect('mycollec.db')
                 discogsParse.fetchCollection(self.conn, discogs_username)
 		self.generateReleaseTree(self.wid)
+
+	def on_add_custom_pushed(self, widget):
+		self.custom_release_wid()
 
 	def on_submit_pushed(self, widget):
 		self.conn = sqlite3.connect('mycollec.db')
@@ -96,8 +108,103 @@ class MyApp(App):
 			submitButton = gui.Button("Submit", width=200, height=30, margin='10px')
 			submitButton.set_on_click_listener(self.on_submit_pushed)
 			rightLayout.append(submitButton)
+			self.rightLayout = rightLayout
+			self.mainWindow.append(self.rightLayout, key='rightLayout')
+				
+	def on_custom_release_add_track(self, widget, *userdata):
+		tracklist = gui.HBox(widht=100, height=20)
+		tracklistPosition= gui.TextInput(width=30, height=20, margin='10px', single_line=True)
+		tracklistArtist= gui.TextInput(width=100, height=20, margin='10px', single_line=True)
+		tracklistTitle= gui.TextInput(width=100, height=20, margin='10px', single_line=True)
+		tracklist.append(tracklistPosition, key="trackPosition")
+		tracklist.append(tracklistArtist, key="trackArtist")
+		tracklist.append(tracklistTitle, key="trackTitle")
+		userdata[0].append(tracklist)
+		return
 
-			self.mainWindow.append(rightLayout, key='rightLayout')
+	def on_custom_add_release(self, widget, *userdata):
+		releaseYear = int(userdata[0][0].children["yearTextInput"].get_value())
+		releaseArtist = userdata[0][0].children["artistTextInput"].get_value()
+		releaseTitle = userdata[0][0].children["titleTextInput"].get_value()
+		
+		releaseArtistData = customRelease.artists(releaseArtist)	
+		tracklist = []
+
+		if len(userdata[0][1].children) == 1:
+			return
+
+		for row in userdata[0][1].children.values():
+			if "trackPosition" in row.children.keys():
+				position = row.children["trackPosition"].get_value()
+				artist = row.children["trackArtist"].get_value()
+				title = row.children["trackTitle"].get_value()
+				
+				trackArtistData = None
+				if artist != "":
+					trackArtistData = customRelease.artists(artist)
+				if position != "" and title != "":
+					track = customRelease.track(trackArtistData, position, title)
+					tracklist.append(track)
+
+		if len(tracklist) > 0:
+			release = customRelease.release(releaseYear, releaseArtistData, releaseTitle, tracklist)
+			releaseJson = customRelease.get_json(release)
+
+			conn = sqlite3.connect('mycollec.db')
+			#Insert dans la table album
+			#Insert dans la table track
+			print releaseJson
+			discogsParse.parseRelease(conn, release)
+			self.generateReleaseTree(self.wid)
+		return
+
+	def custom_release_wid(self):
+		layoutV = gui.VBox(width='80%', height='100%')
+		layoutV.style['display'] = 'block'
+		layoutV.style['overflow'] = 'auto'
+		layoutReleaseInfo = gui.HBox(width='80%', height='10%')
+		yearLabel = gui.Label("Year: ", width=20, height=20)
+		yearTextInput = gui.TextInput(width=50, height=20, margin='10px', single_line=True)
+		artistLabel = gui.Label("Artist: ", width=20, height=20)
+		artistTextInput = gui.TextInput(width=200, height=20, margin='10px', single_line=True)
+		titleLabel = gui.Label("Title: ", width=20, height=20)
+		titleTextInput = gui.TextInput(width=200, height=20, margin='10px', single_line=True)
+
+		layoutReleaseInfo.append(yearLabel, key='yearLabel')
+		layoutReleaseInfo.append(yearTextInput, key='yearTextInput')
+		layoutReleaseInfo.append(artistLabel, key='artistLabel')
+		layoutReleaseInfo.append(artistTextInput, key='artistTextInput')
+		layoutReleaseInfo.append(titleLabel, key='titleLabel')
+		layoutReleaseInfo.append(titleTextInput, key='titleTextInput')
+		
+		tracklist = gui.VBox(width='80%', height='70%')
+		tracklist.style['display'] = 'block'
+		tracklist.style['overflow'] = 'auto'
+		tracklistLabel = gui.HBox(widht=100, height=20)
+		tracklistPositionLabel = gui.Label("Position", width=30, height=20)
+		tracklistArtistLabel = gui.Label("Artist", width=100, height=20)
+		tracklistTitleLabel = gui.Label("Title", width=100, height=20)
+		tracklistLabel.append(tracklistPositionLabel)
+		tracklistLabel.append(tracklistArtistLabel)
+		tracklistLabel.append(tracklistTitleLabel)
+		tracklist.append(tracklistLabel)
+
+		layoutButton = gui.HBox(width='80%', height=20)
+		addTrackButton = gui.Button("Add track")
+		addTrackButton.set_on_click_listener(self.on_custom_release_add_track, tracklist)
+		addReleaseToDb = gui.Button("Save to database")
+		addReleaseToDb.set_on_click_listener(self.on_custom_add_release, [layoutReleaseInfo, tracklist])
+		layoutButton.append(addTrackButton)
+		layoutButton.append(addReleaseToDb)
+
+		layoutV.append(layoutReleaseInfo)
+		layoutV.append(tracklist)
+		layoutV.append(layoutButton)
+		
+		self.rightLayout = layoutV
+		self.mainWindow.append(layoutV, key='rightLayout')
+		return
+
 				
 
 	def generateReleaseTree(self, wid, filter=""):
