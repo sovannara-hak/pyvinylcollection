@@ -6,6 +6,7 @@ def fetchCollection(bdd, username):
     current_page = 1
     total_pages = 1
     headers = {'User-Agent': 'pyvinylcollection/0.1'}
+    cursor = bdd.cursor()
     while current_page <= total_pages:
         url = 'https://api.discogs.com/users/'+username+'/collection/folders/0/releases?page='+str(current_page)
         r = requests.get(url, headers=headers)
@@ -15,10 +16,16 @@ def fetchCollection(bdd, username):
 
         for release in jsondata['releases']:
             releaseId = release['id']
-            url_release = 'https://api.discogs.com/releases/'+str(releaseId)
-            req_release = requests.get(url_release, headers=headers)
-            jsondata_release = req_release.json()
-            parseRelease(bdd, jsondata_release)
+            
+            query = "SELECT COUNT(Id) FROM Tracks WHERE AlbumId = ?"
+            cursor.execute(query, (releaseId, ))
+            checkAlbumCount = cursor.fetchone()[0]
+
+            if (checkAlbumCount == 0):
+                url_release = 'https://api.discogs.com/releases/'+str(releaseId)
+                req_release = requests.get(url_release, headers=headers)
+                jsondata_release = req_release.json()
+                parseRelease(bdd, jsondata_release)
 
         current_page = current_page + 1
 
@@ -80,6 +87,7 @@ def parseRelease(bdd, strData):
 		cursor.execute(query, (title, artistId,))
 		albumId = cursor.fetchone()[0]
 
+
 		query = "SELECT COUNT(Id) FROM Tracks WHERE Title = ? AND AlbumArtistId = ? AND AlbumId = ?"
 		cursor.execute(query, (track['title'], artistId, albumId,))
 		checkTrack = cursor.fetchone()[0]
@@ -89,6 +97,8 @@ def parseRelease(bdd, strData):
 					VALUES(?, ?, ?, ?, ?, ?)"""
 			cursor.execute(query, (track['title'], trackArtist, artistId, track['position'], albumId, track['duration']))
 			#print "Insert " + track['title'] + "\n"
+                #else:
+                #    print "heading or exist"
 	bdd.commit()
 
 def parseCollection(bdd, strData):
