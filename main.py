@@ -23,7 +23,8 @@ class TrackInfo(object):
 
 class MyApp(App):
 	def __init__(self, *args):
-		super(MyApp, self).__init__(*args)
+                res_path = os.path.join(os.path.dirname(__file__), 'res')
+		super(MyApp, self).__init__(*args, static_file_path=res_path)
 
 	def main(self, name='VinylCollection'):
 		self.mainWindow = gui.HBox(width='100%', height='100%')
@@ -254,5 +255,5 @@ if __name__ == "__main__":
                     discogsParse.fetchCollection(conn, discogs_username)
 
             sqlbrowser.clearScrobbleQueue(conn)
-            start(MyApp, debug=True, address='0.0.0.0', update_interval=0.3)
+            start(MyApp, debug=True, address='0.0.0.0', websocket_timeout_timer_ms=300, multiple_instance=False, update_interval=0.3)
             #start(MyApp, standalone=True)
