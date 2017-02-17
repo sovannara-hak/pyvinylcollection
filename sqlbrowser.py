@@ -124,3 +124,21 @@ def submitScrobble(conn):
                 timestamp = int(time.time())
                 network.scrobble(artist=artist, title=title, timestamp=timestamp)
 		print "[" + row[2] + "] " + row[0] + " - " + row[1]
+
+def deleteRelease(conn, releaseInfo):
+	print releaseInfo.discogsId, releaseInfo.artistId
+	cursor = conn.cursor()
+	queryDelTracks = """DELETE FROM Tracks WHERE AlbumId = ?"""
+	cursor.execute(queryDelTracks, (str(releaseInfo.discogsId),))
+
+	queryDelAlbum = """DELETE FROM Albums WHERE DiscogsId = ?"""
+	cursor.execute(queryDelAlbum, (releaseInfo.discogsId,))
+
+	queryCountAlbum = """SELECT COUNT(*) FROM Albums WHERE ArtistId = ?"""
+	cursor.execute(queryCountAlbum, (releaseInfo.artistId,))
+	numberOfAlbums = cursor.fetchone()[0]
+	if (numberOfAlbums == 0):
+		queryDelArtist = """DELETE FROM Artists WHERE Id = ?"""
+		cursor.execute(queryDelArtist, (releaseInfo.artistId,))
+	conn.commit()
+

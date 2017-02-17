@@ -79,6 +79,14 @@ class MyApp(App):
 		self.conn = sqlite3.connect('mycollec.db')
 		sqlbrowser.submitScrobble(self.conn)	
 
+        def on_delete_pushed(self, widget, *userdata):
+		self.conn = sqlite3.connect('mycollec.db')
+		releaseInfo = userdata[0]
+		sqlbrowser.deleteRelease(self.conn, releaseInfo)
+		self.generateReleaseTree(self.wid)
+		layoutV = gui.VBox(width='100%', height='90%')
+		self.mainWindow.append(layoutV, key='rightLayout')
+
 	def on_track_checked(self, widget, *userdata):
 		self.conn = sqlite3.connect('mycollec.db')
 		val = userdata[0]
@@ -106,9 +114,12 @@ class MyApp(App):
 				checkBox.set_on_change_listener(self.on_track_checked, trackInfo)
 				rightLayout.append(checkBox)
 
+                        deleteButton = gui.Button("Delete album", width=200, height=30, margin='10px')
+                        deleteButton.set_on_click_listener(self.on_delete_pushed, userdata[0])
 			submitButton = gui.Button("Submit", width=200, height=30, margin='10px')
 			submitButton.set_on_click_listener(self.on_submit_pushed)
 			rightLayout.append(submitButton)
+                        rightLayout.append(deleteButton)
 			self.rightLayout = rightLayout
 			self.mainWindow.append(self.rightLayout, key='rightLayout')
 				
