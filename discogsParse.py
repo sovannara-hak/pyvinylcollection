@@ -1,12 +1,14 @@
 import re
 import sqlite3
 import requests
+import time
 
 def fetchCollection(bdd, username):
     current_page = 1
     total_pages = 1
     headers = {'User-Agent': 'pyvinylcollection/0.1'}
     cursor = bdd.cursor()
+    request_time_limit = 2.4
     while current_page <= total_pages:
         url = 'https://api.discogs.com/users/'+username+'/collection/folders/0/releases?page='+str(current_page)
         r = requests.get(url, headers=headers)
@@ -14,6 +16,7 @@ def fetchCollection(bdd, username):
         total_pages = jsondata['pagination']['pages']
         parseCollection(bdd, jsondata)
 
+        previous_time = time.time()
         for release in jsondata['releases']:
             releaseId = release['id']
             
@@ -22,10 +25,14 @@ def fetchCollection(bdd, username):
             checkAlbumCount = cursor.fetchone()[0]
 
             if (checkAlbumCount == 0):
+                while time.time() - previous_time < request_time_limit : 
+                    time.sleep(0.5)
                 url_release = 'https://api.discogs.com/releases/'+str(releaseId)
                 req_release = requests.get(url_release, headers=headers)
+                previous_time = time.time()
+
                 jsondata_release = req_release.json()
-                parseRelease(bdd, jsondata_release)
+                parseRelease(bdd, unicode(jsondata_release))
 
         current_page = current_page + 1
 

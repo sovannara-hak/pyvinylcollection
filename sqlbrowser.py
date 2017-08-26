@@ -59,6 +59,7 @@ def clearScrobbleQueue(connection):
 
 def createDatabase(conn):
 	cursor = conn.cursor()
+        cursor.execute('PRAGMA enncoding="UTF-8";')
 	
 	query = """CREATE TABLE IF NOT EXISTS 
 			Artists (`Id` INTEGER PRIMARY KEY AUTOINCREMENT,
