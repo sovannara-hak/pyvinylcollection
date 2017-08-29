@@ -32,7 +32,7 @@ def fetchCollection(bdd, username):
                 previous_time = time.time()
 
                 jsondata_release = req_release.json()
-                parseRelease(bdd, unicode(jsondata_release))
+                parseRelease(bdd, jsondata_release)
 
         current_page = current_page + 1
 
@@ -66,7 +66,7 @@ def parseRelease(bdd, strData):
 		if ('artists' in track.keys()):
 			trackArtist = fusionArtists(track['artists'])
 		else:
-			trackArtist = artist
+			trackArtist = unicode(artist)
 
 		#print trackArtist + "\n"
 		#print track['position'] + " - " + track['title'] + "\n"
@@ -96,13 +96,13 @@ def parseRelease(bdd, strData):
 
 
 		query = "SELECT COUNT(Id) FROM Tracks WHERE Title = ? AND AlbumArtistId = ? AND AlbumId = ?"
-		cursor.execute(query, (track['title'], artistId, albumId,))
+		cursor.execute(query, (unicode(track['title']), artistId, albumId,))
 		checkTrack = cursor.fetchone()[0]
 	
 		if (checkTrack == 0 and track['type_'] != "heading"):
 			query = """INSERT INTO Tracks (Title, Artist, AlbumArtistId, Position, AlbumId, Length) 
 					VALUES(?, ?, ?, ?, ?, ?)"""
-			cursor.execute(query, (track['title'], trackArtist, artistId, track['position'], albumId, track['duration']))
+			cursor.execute(query, (unicode(track['title']), trackArtist, artistId, track['position'], albumId, track['duration']))
 			#print "Insert " + track['title'] + "\n"
                 #else:
                 #    print "heading or exist"
