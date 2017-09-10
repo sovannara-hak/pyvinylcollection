@@ -5,6 +5,9 @@ import discogsParse
 import json
 import customRelease
 from config import *
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import remi.gui as gui
 from remi import start, App
@@ -139,7 +142,7 @@ class MyApp(App):
 		releaseArtist = userdata[0][0].children["artistTextInput"].get_value()
 		releaseTitle = userdata[0][0].children["titleTextInput"].get_value()
 		
-		releaseArtistData = customRelease.artists(releaseArtist)	
+		releaseArtistData = customRelease.artists(unicode(releaseArtist))
 		tracklist = []
 
 		if len(userdata[0][1].children) == 1:
@@ -153,13 +156,13 @@ class MyApp(App):
 				
 				trackArtistData = None
 				if artist != "":
-					trackArtistData = customRelease.artists(artist)
+					trackArtistData = customRelease.artists(unicode(artist))
 				if position != "" and title != "":
-					track = customRelease.track(trackArtistData, position, title)
+					track = customRelease.track(trackArtistData, position, unicode(title))
 					tracklist.append(track)
 
 		if len(tracklist) > 0:
-			release = customRelease.release(releaseYear, releaseArtistData, releaseTitle, tracklist)
+			release = customRelease.release(releaseYear, releaseArtistData, unicode(releaseTitle), tracklist)
 			releaseJson = customRelease.get_json(release)
 
 			conn = sqlite3.connect('mycollec.db')

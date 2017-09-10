@@ -130,7 +130,7 @@ def deleteRelease(conn, releaseInfo):
 	print releaseInfo.discogsId, releaseInfo.artistId
 	cursor = conn.cursor()
 	queryDelTracks = """DELETE FROM Tracks WHERE AlbumId = ?"""
-	cursor.execute(queryDelTracks, (str(releaseInfo.discogsId),))
+	cursor.execute(queryDelTracks, (releaseInfo.discogsId,))
 
 	queryDelAlbum = """DELETE FROM Albums WHERE DiscogsId = ?"""
 	cursor.execute(queryDelAlbum, (releaseInfo.discogsId,))
