@@ -20,8 +20,10 @@ class ReleaseInfo(object):
 
 class TrackInfo(object):
 	def __init__(self):
+                self.id = ""
 		self.title = ""
 		self.artist = ""
+                self.album = ""
 		self.duration = ""
 
 class MyApp(App):
@@ -107,13 +109,15 @@ class MyApp(App):
 			tracksList = sqlbrowser.getTracksList(self.conn, releaseInfo.discogsId)
 			for track in tracksList:
 				trackInfo = TrackInfo()
+                                trackInfo.id = track[0]
 				trackInfo.title = track[1]
 				trackInfo.duration = track[4]
 				trackInfo.artist = track[2]
+                                trackInfo.album = sqlbrowser.getAlbumName(self.conn, releaseInfo.discogsId)[0][0]
 				
 				sqlbrowser.insertIntoScrobbleQueue(self.conn, trackInfo)
 
-				checkBox = gui.CheckBoxLabel(track[5] + " " + track[1], True, width='70%', height=20, margin='10px')
+				checkBox = gui.CheckBoxLabel(str(track[0]) + " " + track[5] + " " + track[1], True, width='70%', height=20, margin='10px')
 				checkBox.set_on_change_listener(self.on_track_checked, trackInfo)
 				rightLayout.append(checkBox)
 
