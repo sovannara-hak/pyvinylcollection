@@ -52,10 +52,15 @@ class MyApp(App):
 		self.leftLayout.append(self.wid)
 
 		self.buttonBar = gui.HBox(width=350, height='10%')
-		self.addCustomButton = gui.Button("Add custom release", width=280, height=30, margin='10px')
+
+		self.addReleaseButton = gui.Button("Add release", width=200, height=30, margin='10px')
+		self.addReleaseButton.set_on_click_listener(self.on_add_release_pushed)
+
+		self.addCustomButton = gui.Button("Add custom", width=200, height=30, margin='10px')
 		self.addCustomButton.set_on_click_listener(self.on_add_custom_pushed)
 
 		self.buttonBar.append(self.addCustomButton)
+		self.buttonBar.append(self.addReleaseButton)
 		self.buttonBar.append(self.syncButton)
 
 		self.leftLayout.append(self.buttonBar)
@@ -79,6 +84,9 @@ class MyApp(App):
 
 	def on_add_custom_pushed(self, widget):
 		self.custom_release_wid()
+
+	def on_add_release_pushed(self, widget):
+		self.add_release_wid()
 
 	def on_submit_pushed(self, widget):
 		self.conn = sqlite3.connect('mycollec.db')
@@ -141,6 +149,12 @@ class MyApp(App):
 		userdata[0].append(tracklist)
 		return
 
+	def on_custom_release_add_release(self, widget, *userdata):
+	    conn = sqlite3.connect('mycollec.db')
+            discogsParse.fetchRelease(conn, userdata[0].get_value())
+	    self.generateReleaseTree(self.wid)
+            return
+
 	def on_custom_add_release(self, widget, *userdata):
 		releaseYear = int(userdata[0][0].children["yearTextInput"].get_value())
 		releaseArtist = userdata[0][0].children["artistTextInput"].get_value()
@@ -175,6 +189,25 @@ class MyApp(App):
 			print releaseJson
 			discogsParse.parseRelease(conn, release)
 			self.generateReleaseTree(self.wid)
+		return
+
+        def add_release_wid(self):
+		layoutV = gui.VBox(width='80%', height='100%')
+		layoutV.style['display'] = 'block'
+		layoutV.style['overflow'] = 'auto'
+		layoutAddRelease= gui.HBox(width='80%', height='10%')
+		releaseIdLabel = gui.Label("Discogs Release Id: ", width=160, height=20)
+		releaseIdTextInput = gui.TextInput(width=200, height=20, margin='10px', single_line=True)
+		addReleaseButton = gui.Button("Add release")
+		layoutAddRelease.append(releaseIdLabel, key='releaseIdLabel')
+		layoutAddRelease.append(releaseIdTextInput, key='releaseIdTextInput')
+		layoutAddRelease.append(addReleaseButton, key='addReleaseButton')
+
+		addReleaseButton.set_on_click_listener(self.on_custom_release_add_release, releaseIdTextInput)
+
+		layoutV.append(layoutAddRelease)
+		self.rightLayout = layoutV
+		self.mainWindow.append(layoutV, key='rightLayout')
 		return
 
 	def custom_release_wid(self):

@@ -3,6 +3,23 @@ import sqlite3
 import requests
 import time
 
+def fetchRelease(bdd, releaseId):
+    headers = {'User-Agent': 'pyvinylcollection/0.1'}
+    url_release = 'https://api.discogs.com/releases/'+str(releaseId)
+    req_release = requests.get(url_release, headers=headers)
+
+    jsondata_release = req_release.json()
+    parseRelease(bdd, jsondata_release)
+    return
+
+def albumCount(bdd, releaseId):
+    cursor = bdd.cursor()
+    query = "SELECT COUNT(Id) FROM Tracks WHERE AlbumId = ?"
+    cursor.execute(query, (releaseId, ))
+    checkAlbumCount = cursor.fetchone()[0]
+
+    return checkAlbumCount
+
 def fetchCollection(bdd, username):
     current_page = 1
     total_pages = 1
@@ -19,24 +36,16 @@ def fetchCollection(bdd, username):
         previous_time = time.time()
         for release in jsondata['releases']:
             releaseId = release['id']
-            
-            query = "SELECT COUNT(Id) FROM Tracks WHERE AlbumId = ?"
-            cursor.execute(query, (releaseId, ))
-            checkAlbumCount = cursor.fetchone()[0]
+
+            checkAlbumCount = albumCount(bdd, releaseId)
 
             if (checkAlbumCount == 0):
                 while time.time() - previous_time < request_time_limit : 
                     time.sleep(0.5)
-                url_release = 'https://api.discogs.com/releases/'+str(releaseId)
-                req_release = requests.get(url_release, headers=headers)
+                fetchRelease(bdd, releaseId)
                 previous_time = time.time()
 
-                jsondata_release = req_release.json()
-                parseRelease(bdd, jsondata_release)
-
         current_page = current_page + 1
-
-    
 
 def fusionArtists(strData):
 	result = ""
