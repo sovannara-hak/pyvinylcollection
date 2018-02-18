@@ -104,9 +104,10 @@ def parseRelease(bdd, strData):
 		albumId = cursor.fetchone()[0]
 
 
-		query = "SELECT COUNT(Id) FROM Tracks WHERE Title = ? AND AlbumArtistId = ? AND AlbumId = ?"
-		cursor.execute(query, (unicode(track['title']), artistId, albumId,))
-		checkTrack = cursor.fetchone()[0]
+		#query = "SELECT COUNT(Id) FROM Tracks WHERE Title = ? AND AlbumArtistId = ? AND AlbumId = ?"
+		#cursor.execute(query, (unicode(track['title']), artistId, albumId,))
+		#checkTrack = cursor.fetchone()[0]
+                checkTrack = 0
 	
 		if (checkTrack == 0 and track['type_'] != "heading"):
 			query = """INSERT INTO Tracks (Title, Artist, AlbumArtistId, Position, AlbumId, Length) 
