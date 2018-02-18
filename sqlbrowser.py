@@ -140,7 +140,7 @@ def submitScrobble(conn):
                 title = row[1]
                 album = row[2]
                 timestamp = int(time.time())
-                #network.scrobble(artist=artist, title=title, album=album, timestamp=timestamp)
+                network.scrobble(artist=artist, title=title, album=album, timestamp=timestamp)
                 try:
     		    print "[" + row[3] + "] " + row[0] + " - " + row[1] + " - " + row[2]
                 except:
