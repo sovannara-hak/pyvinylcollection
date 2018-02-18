@@ -140,9 +140,11 @@ def submitScrobble(conn):
                 title = row[1]
                 album = row[2]
                 timestamp = int(time.time())
-                network.scrobble(artist=artist, title=title, album=album, timestamp=timestamp)
-		print "[" + row[3] + "] " + row[0] + " - " + row[1] + " - " + row[2]
-                #print "Scrobbling..."
+                #network.scrobble(artist=artist, title=title, album=album, timestamp=timestamp)
+                try:
+    		    print "[" + row[3] + "] " + row[0] + " - " + row[1] + " - " + row[2]
+                except:
+                    print "Failed to print title name..."
 
 def deleteRelease(conn, releaseInfo):
 	print releaseInfo.discogsId, releaseInfo.artistId
