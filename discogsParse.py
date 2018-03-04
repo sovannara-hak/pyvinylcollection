@@ -99,11 +99,6 @@ def parseRelease(bdd, strData):
 						VALUES(?, ?, ?, ?)"""
 			cursor.execute(query, (discogsID, title, artistId, year))
 
-		query = "SELECT DiscogsId FROM Albums WHERE Title = ? AND ArtistId = ?"
-		cursor.execute(query, (title, artistId,))
-		albumId = cursor.fetchone()[0]
-
-
 		#query = "SELECT COUNT(Id) FROM Tracks WHERE Title = ? AND AlbumArtistId = ? AND AlbumId = ?"
 		#cursor.execute(query, (unicode(track['title']), artistId, albumId,))
 		#checkTrack = cursor.fetchone()[0]
@@ -112,7 +107,7 @@ def parseRelease(bdd, strData):
 		if (checkTrack == 0 and track['type_'] != "heading"):
 			query = """INSERT INTO Tracks (Title, Artist, AlbumArtistId, Position, AlbumId, Length) 
 					VALUES(?, ?, ?, ?, ?, ?)"""
-			cursor.execute(query, (unicode(track['title']), trackArtist, artistId, track['position'], albumId, track['duration']))
+			cursor.execute(query, (unicode(track['title']), trackArtist, artistId, track['position'], discogsID, track['duration']))
 			#print "Insert " + track['title'] + "\n"
                 #else:
                 #    print "heading or exist"
